@@ -31,19 +31,31 @@ app.get("/api/health", (req, res) => {
 // Test database endpoint
 app.get("/api/test-db", async (req, res) => {
   try {
+    console.log("Testing database connection...");
+    console.log("MONGO_URL exists:", !!process.env.MONGO_URL);
+    console.log("MONGO_URL length:", process.env.MONGO_URL?.length || 0);
+
     await userService.connect();
     res.json({
       status: "OK",
       message: "Database connection successful",
       timestamp: new Date().toISOString(),
+      mongoUrlExists: !!process.env.MONGO_URL,
+      mongoUrlLength: process.env.MONGO_URL?.length || 0,
     });
   } catch (error) {
     console.error("Database test error:", error);
+    console.error("Error details:", error.message);
+    console.error("MONGO_URL:", process.env.MONGO_URL ? "SET" : "NOT SET");
+
     res.status(500).json({
       status: "ERROR",
       message: "Database connection failed",
       error: error.message,
       timestamp: new Date().toISOString(),
+      mongoUrlExists: !!process.env.MONGO_URL,
+      mongoUrlLength: process.env.MONGO_URL?.length || 0,
+      errorType: error.constructor.name,
     });
   }
 });
