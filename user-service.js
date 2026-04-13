@@ -18,13 +18,33 @@ let User;
 
 module.exports.connect = function () {
   return new Promise(function (resolve, reject) {
-    let db = mongoose.createConnection(mongoDBConnectionString);
+    // Fix the connection string format for MongoDB Atlas
+    let connectionString = mongoDBConnectionString;
+
+    // Ensure the connection string has the correct SSL parameters
+    if (connectionString.includes("mongodb+srv://")) {
+      connectionString = connectionString.replace(
+        /\/\?appName=.*$/,
+        "/?retryWrites=true&w=majority&ssl=true",
+      );
+    }
+
+    console.log("Connecting with:", connectionString.substring(0, 50) + "...");
+
+    let db = mongoose.createConnection(connectionString, {
+      ssl: true,
+      sslValidate: false, // Temporarily disable SSL validation
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+    });
 
     db.on("error", (err) => {
+      console.error("Database connection error:", err);
       reject(err);
     });
 
     db.once("open", () => {
+      console.log("Database connected successfully");
       User = db.model("users", userSchema);
       resolve();
     });
