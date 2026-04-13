@@ -18,6 +18,36 @@ app.use(
 
 app.use(express.json());
 
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+// Test database endpoint
+app.get("/api/test-db", async (req, res) => {
+  try {
+    await userService.connect();
+    res.json({
+      status: "OK",
+      message: "Database connection successful",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Database test error:", error);
+    res.status(500).json({
+      status: "ERROR",
+      message: "Database connection failed",
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
 // Register endpoint
 app.post("/api/user/register", async (req, res) => {
   try {
