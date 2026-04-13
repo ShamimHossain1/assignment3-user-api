@@ -18,41 +18,45 @@ app.use(
 
 app.use(express.json());
 
-// Global database connection
-let dbConnected = false;
-
-const ensureDbConnected = async () => {
-  if (!dbConnected) {
-    await userService.connect();
-    dbConnected = true;
-  }
-};
-
 // Register endpoint
 app.post("/api/user/register", async (req, res) => {
   try {
-    await ensureDbConnected();
+    console.log("Register request received:", req.body);
+
+    // Connect to database for each request (serverless friendly)
+    await userService.connect();
+    console.log("Database connected");
+
     userService
       .registerUser(req.body)
       .then((msg) => {
+        console.log("Registration successful:", msg);
         res.status(200).json({ message: msg });
       })
       .catch((msg) => {
+        console.error("Registration failed:", msg);
         res.status(422).json({ message: msg });
       });
   } catch (error) {
     console.error("Register error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
 });
 
 // Login endpoint
 app.post("/api/user/login", async (req, res) => {
   try {
-    await ensureDbConnected();
+    console.log("Login request received:", req.body);
+
+    await userService.connect();
+    console.log("Database connected for login");
+
     userService
       .checkUser(req.body)
       .then((user) => {
+        console.log("Login successful for user:", user.userName);
         let payload = {
           _id: user._id,
           userName: user.userName,
@@ -63,19 +67,21 @@ app.post("/api/user/login", async (req, res) => {
         res.json({ message: "login successful", token: token });
       })
       .catch((msg) => {
+        console.error("Login failed:", msg);
         res.status(422).json({ message: msg });
       });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
 });
 
 // Favourites endpoints
 app.get("/api/user/favourites", async (req, res) => {
   try {
-    await ensureDbConnected();
-    // Mock user ID for now
+    await userService.connect();
     const mockUserId = "64a1b2c3d4e5f6789012345";
 
     userService
@@ -88,13 +94,15 @@ app.get("/api/user/favourites", async (req, res) => {
       });
   } catch (error) {
     console.error("Favourites error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
 });
 
 app.put("/api/user/favourites/:id", async (req, res) => {
   try {
-    await ensureDbConnected();
+    await userService.connect();
     const mockUserId = "64a1b2c3d4e5f6789012345";
     const id = req.params.id;
 
@@ -108,13 +116,15 @@ app.put("/api/user/favourites/:id", async (req, res) => {
       });
   } catch (error) {
     console.error("Add favourite error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
 });
 
 app.delete("/api/user/favourites/:id", async (req, res) => {
   try {
-    await ensureDbConnected();
+    await userService.connect();
     const mockUserId = "64a1b2c3d4e5f6789012345";
     const id = req.params.id;
 
@@ -128,11 +138,10 @@ app.delete("/api/user/favourites/:id", async (req, res) => {
       });
   } catch (error) {
     console.error("Remove favourite error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
 });
-
-// Initialize connection on startup
-ensureDbConnected().catch(console.error);
 
 module.exports = app;
