@@ -15,7 +15,10 @@ const HTTP_PORT = process.env.PORT || 8080;
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://assignment3-frontend.vercel.app",
+    ],
     credentials: true,
   }),
 );
@@ -118,14 +121,23 @@ app.delete(
   },
 );
 
-userService
-  .connect()
-  .then(() => {
-    app.listen(HTTP_PORT, () => {
-      console.log("API listening on: " + HTTP_PORT);
+// For local development
+if (process.env.NODE_ENV !== "production") {
+  userService
+    .connect()
+    .then(() => {
+      app.listen(HTTP_PORT, () => {
+        console.log("API listening on: " + HTTP_PORT);
+      });
+    })
+    .catch((err) => {
+      console.log("unable to start the server: " + err);
+      process.exit();
     });
-  })
-  .catch((err) => {
-    console.log("unable to start the server: " + err);
-    process.exit();
-  });
+}
+
+// For Vercel deployment
+module.exports = async (req, res) => {
+  await userService.connect();
+  return app(req, res);
+};
