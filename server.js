@@ -138,7 +138,4 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // For Vercel deployment
-module.exports = async (req, res) => {
-  await userService.connect();
-  return app(req, res);
-};
+module.exports = app;
