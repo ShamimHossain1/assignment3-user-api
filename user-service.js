@@ -32,8 +32,6 @@ module.exports.connect = function () {
     let db = mongoose.createConnection(connectionString, {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-      bufferCommands: false,
-      bufferMaxEntries: 0,
     });
 
     db.on("error", (err) => {
