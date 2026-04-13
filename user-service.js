@@ -21,21 +21,19 @@ module.exports.connect = function () {
     // Fix the connection string format for MongoDB Atlas
     let connectionString = mongoDBConnectionString;
 
-    // Ensure the connection string has the correct SSL parameters
+    // Clean up the connection string - remove any problematic parameters
     if (connectionString.includes("mongodb+srv://")) {
-      connectionString = connectionString.replace(
-        /\/\?appName=.*$/,
-        "/?retryWrites=true&w=majority&ssl=true",
-      );
+      connectionString = connectionString.replace(/\/\?appName=.*$/, "");
+      connectionString += "/?retryWrites=true&w=majority";
     }
 
     console.log("Connecting with:", connectionString.substring(0, 50) + "...");
 
     let db = mongoose.createConnection(connectionString, {
-      ssl: true,
-      sslValidate: false, // Temporarily disable SSL validation
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
+      bufferCommands: false,
+      bufferMaxEntries: 0,
     });
 
     db.on("error", (err) => {
