@@ -24,6 +24,36 @@ app.use(
   }),
 );
 
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+// Test database endpoint
+app.get("/api/test-db", async (req, res) => {
+  try {
+    await userService.connect();
+    res.json({
+      status: "OK",
+      message: "Database connection successful",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Database test error:", error);
+    res.status(500).json({
+      status: "ERROR",
+      message: "Database connection failed",
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
 // Configure Passport JWT Strategy
 let jwtOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme("jwt"),
