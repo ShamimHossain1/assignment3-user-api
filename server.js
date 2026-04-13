@@ -18,6 +18,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "https://assignment3-frontend.vercel.app",
+      "https://assignment3-frontend-gamma.vercel.app",
     ],
     credentials: true,
   }),
